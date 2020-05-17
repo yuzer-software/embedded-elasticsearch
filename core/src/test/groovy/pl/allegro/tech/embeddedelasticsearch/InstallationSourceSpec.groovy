@@ -7,7 +7,7 @@ class InstallationSourceSpec extends Specification {
 
     def "should construct valid url for version"() {
         given:
-            final installationSource = new InstallFromVersion("5.0.0-alpha1")
+            final installationSource = new InstallFromVersion("7.7.0")
         when:
             final resolvedUrl = installationSource.resolveDownloadUrl()
         then:
@@ -16,8 +16,8 @@ class InstallationSourceSpec extends Specification {
 
     def "should extract properly version from normal url"() {
         given:
-            final expectedVersion = "2.3.4"
-            final installationSource = new InstallFromDirectUrl(new URL("https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/zip/elasticsearch/2.3.4/elasticsearch-2.3.4.zip"))
+            final expectedVersion = "7.7.0"
+            final installationSource = new InstallFromDirectUrl(new URL("https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.7.0-windows-x86_64.zip"))
         when:
             final determinedVersion = installationSource.determineVersion()
         then:

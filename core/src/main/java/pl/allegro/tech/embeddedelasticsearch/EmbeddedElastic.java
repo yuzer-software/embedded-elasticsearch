@@ -1,6 +1,8 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pl.allegro.tech.embeddedelasticsearch.InstallationDescription.Plugin;
 
 import java.io.File;
@@ -9,21 +11,15 @@ import java.io.InputStream;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 import static pl.allegro.tech.embeddedelasticsearch.Require.require;
 
 public final class EmbeddedElastic {
+    private static final Logger logger = LoggerFactory.getLogger(EmbeddedElastic.class);
 
     private final String esJavaOpts;
     private final InstanceSettings instanceSettings;
@@ -57,6 +53,7 @@ public final class EmbeddedElastic {
      * Downloads Elasticsearch with specified plugins, setups them and starts
      */
     public synchronized EmbeddedElastic start() throws IOException, InterruptedException {
+        logger.info("Calling start ");
         if (!started) {
             started = true;
             installElastic();
@@ -70,6 +67,7 @@ public final class EmbeddedElastic {
 
     private void installElastic() throws IOException, InterruptedException {
         ElasticSearchInstaller elasticSearchInstaller = new ElasticSearchInstaller(instanceSettings, installationDescription);
+        logger.info("Installing elasticsearch to " + elasticSearchInstaller.getInstallationDirectory());
         elasticSearchInstaller.install();
         File executableFile = elasticSearchInstaller.getExecutableFile();
         File installationDirectory = elasticSearchInstaller.getInstallationDirectory();

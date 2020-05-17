@@ -6,7 +6,7 @@ import static java.util.concurrent.TimeUnit.MINUTES
 import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.HTTP_PORT
 
 class SynchronicitySpec extends Specification {
-    static final ELASTIC_VERSION = "2.2.0"
+    static final ELASTIC_VERSION = "7.7.0"
     static final HTTP_PORT_VALUE = 9999
 
     def "should not throw exception on starting embedded instance more than once"() {
@@ -15,6 +15,7 @@ class SynchronicitySpec extends Specification {
                 .withElasticVersion(ELASTIC_VERSION)
                 .withStartTimeout(TEST_START_TIMEOUT_IN_MINUTES, MINUTES)
                 .withSetting(HTTP_PORT, HTTP_PORT_VALUE)
+                .withSetting("xpack.ml.enabled", "false") // This cause issues on mac os so disable in tests
                 .build()
         server.start()
         server.start()

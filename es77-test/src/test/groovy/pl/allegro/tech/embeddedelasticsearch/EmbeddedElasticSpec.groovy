@@ -16,13 +16,14 @@ import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
 
 class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
 
-    static final ELASTIC_VERSION = "7.3.2"
+    static final ELASTIC_VERSION = "7.7.0"
     static final HTTP_PORT_VALUE = 9999
     static final DOC_TYPE = "_doc"
 
     static EmbeddedElastic embeddedElastic = EmbeddedElastic.builder()
             .withElasticVersion(ELASTIC_VERSION)
             .withSetting(HTTP_PORT, HTTP_PORT_VALUE)
+            .withSetting("xpack.ml.enabled", "false") // This cause issues on mac os so disable in tests
             .withEsJavaOpts("-Xms128m -Xmx512m")
             .withTemplate(CARS_TEMPLATE_NAME, CARS_TEMPLATE_7x)
             .withIndex(CARS_INDEX_NAME,CARS_INDEX_7x)

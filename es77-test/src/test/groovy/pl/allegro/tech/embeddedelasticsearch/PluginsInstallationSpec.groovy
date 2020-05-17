@@ -8,15 +8,16 @@ class PluginsInstallationSpec extends PluginsInstallationBaseSpec {
 
     EmbeddedElastic.Builder baseEmbeddedElastic() {
         return EmbeddedElastic.builder()
-                .withElasticVersion("6.3.0")
+                .withElasticVersion("7.7.0")
                 .withEsJavaOpts("-Xms128m -Xmx512m")
                 .withSetting(PopularProperties.HTTP_PORT, HTTP_PORT_VALUE)
+                .withSetting("xpack.ml.enabled", "false") // This cause issues on mac os so disable in tests
                 .withStartTimeout(2, MINUTES)
     }
 
     @Override
     String pluginByUrlUrl() {
-        return "https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-stempel/analysis-stempel-6.3.0.zip"
+        return "https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-stempel/analysis-stempel-7.7.0.zip"
     }
 
     @Override
@@ -26,6 +27,6 @@ class PluginsInstallationSpec extends PluginsInstallationBaseSpec {
 
     @Override
     String pluginByName() {
-        return "discovery-file"
+        return "discovery-gce"
     }
 }

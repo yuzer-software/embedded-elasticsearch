@@ -7,8 +7,8 @@ import static java.util.concurrent.TimeUnit.MINUTES
 
 class ValidationSpec extends Specification {
 
-    static final ELASTIC_VERSION = "2.2.0"
-    static final ELASTIC_DOWNLOAD_URL = new URL("https://download.elasticsearch.org/elasticsearch/release/org/elasticsearch/distribution/zip/elasticsearch/2.2.0/elasticsearch-2.2.0.zip")
+    static final ELASTIC_VERSION = "7.7.0"
+    static final ELASTIC_DOWNLOAD_URL = new URL("https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.7.0-windows-x86_64.zip")
 
     def "should throw exception on missing elastic version and download url"() {
         when:
@@ -25,6 +25,7 @@ class ValidationSpec extends Specification {
             EmbeddedElastic.builder()
                     .withElasticVersion(ELASTIC_VERSION)
                     .withStartTimeout(TEST_START_TIMEOUT_IN_MINUTES, MINUTES)
+                    .withSetting("xpack.ml.enabled", "false") // This cause issues on mac os so disable in tests
                     .build()
                     .start()
                     .stop()
@@ -37,6 +38,7 @@ class ValidationSpec extends Specification {
             EmbeddedElastic.builder()
                     .withDownloadUrl(ELASTIC_DOWNLOAD_URL)
                     .withStartTimeout(TEST_START_TIMEOUT_IN_MINUTES, MINUTES)
+                    .withSetting("xpack.ml.enabled", "false") // This cause issues on mac os so disable in tests
                     .build()
                     .start()
                     .stop()

@@ -25,6 +25,11 @@ class InstallFromDirectUrl implements InstallationSource {
     }
 
     private String versionFromUrl(URL url) {
+        Pattern es7VersionPattern = Pattern.compile("-([^/]*)-windows-x86_64.zip");
+        Matcher es7Matcher = es7VersionPattern.matcher(url.toString());
+        if (es7Matcher.find()) {
+            return es7Matcher.group(1);
+        }
         Pattern versionPattern = Pattern.compile("-([^/]*).zip");
         Matcher matcher = versionPattern.matcher(url.toString());
         if (matcher.find()) {
