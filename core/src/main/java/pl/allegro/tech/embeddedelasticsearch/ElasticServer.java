@@ -8,6 +8,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +24,7 @@ class ElasticServer {
     private final String esJavaOpts;
     private final File installationDirectory;
     private final File executableFile;
+    private final File executableSetupPasswordFile;
     private final long startTimeoutInMs;
     private final boolean cleanInstallationDirectoryOnStop;
 
@@ -35,10 +38,11 @@ class ElasticServer {
     private volatile int transportTcpPort = -1;
     private JavaHomeOption javaHome;
 
-    ElasticServer(String esJavaOpts, File installationDirectory, File executableFile, long startTimeoutInMs, boolean cleanInstallationDirectoryOnStop, JavaHomeOption javaHome) {
+    ElasticServer(String esJavaOpts, File installationDirectory, File executableFile, File executableSetupPasswordFile, long startTimeoutInMs, boolean cleanInstallationDirectoryOnStop, JavaHomeOption javaHome) {
         this.esJavaOpts = esJavaOpts;
         this.installationDirectory = installationDirectory;
         this.executableFile = executableFile;
+        this.executableSetupPasswordFile = executableSetupPasswordFile;
         this.startTimeoutInMs = startTimeoutInMs;
         this.cleanInstallationDirectoryOnStop = cleanInstallationDirectoryOnStop;
         this.javaHome = javaHome;
@@ -56,6 +60,48 @@ class ElasticServer {
             finalizeClose();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private Map<String, String> securityMap = null;
+
+    private void initDefaultSecurity() {
+        synchronized (this) {
+            if (securityMap == null) {
+                try {
+                    securityMap = new HashMap();
+                    ProcessBuilder builder = new ProcessBuilder(
+                            executableSetupPasswordFile.getAbsolutePath(),
+                            "auto",
+                            "-b"
+                    );
+                    builder.redirectErrorStream(true);
+                    Process securityPasswords = builder.start();
+                    BufferedReader outputStream = new BufferedReader(new InputStreamReader(securityPasswords.getInputStream(), UTF_8));
+                    String line;
+                    while ((line = readLine(outputStream)) != null) {
+                        logger.info(line);
+                        parseElasticPasswordLine(line);
+                    }
+                } catch (Exception e) {
+                    throw new EmbeddedElasticsearchStartupException(e);
+                }
+            }
+        }
+    }
+
+    String getPassword(String user) {
+        this.initDefaultSecurity();
+        return securityMap.get(user);
+    }
+
+    private void parseElasticPasswordLine(String line) {
+        if (line.startsWith("PASSWORD")) {
+            String subst = line.substring(9);
+            int equalIndex = subst.indexOf("=");
+            String user = subst.substring(0, equalIndex - 1);
+            String password = subst.substring(equalIndex + 2);
+            securityMap.put(user, password);
         }
     }
 

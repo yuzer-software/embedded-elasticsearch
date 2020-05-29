@@ -6,14 +6,26 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 class HttpClient {
 
-    private static final Consumer<CloseableHttpResponse> noop = x -> {};
+    private static final Consumer<CloseableHttpResponse> noop = x -> {
+    };
 
     private final CloseableHttpClient internalHttpClient = HttpClients.createDefault();
+
+    String token = null;
+
+    public HttpClient() {
+    }
+
+    public HttpClient(String username, String password) {
+        String unEncodedToken = username + ":" + password;
+        this.token = Base64.getEncoder().encodeToString(unEncodedToken.getBytes());
+    }
 
     void execute(HttpRequestBase request) {
         execute(request, noop);
@@ -27,6 +39,9 @@ class HttpClient {
     }
 
     <T> T execute(HttpRequestBase request, Function<CloseableHttpResponse, T> block) {
+        if (this.token != null) {
+            request.addHeader("Authorization", "Basic " + token);
+        }
         try (CloseableHttpResponse response = internalHttpClient.execute(request)) {
             return block.apply(response);
         } catch (IOException e) {

@@ -42,6 +42,10 @@ class ElasticSearchInstaller {
         return fileRelativeToInstallationDir("bin", systemDependentExtension("elasticsearch"));
     }
 
+    File getPasswordSetupExecutableFile() {
+        return fileRelativeToInstallationDir("bin", systemDependentExtension("elasticsearch-setup-passwords"));
+    }
+
     File getInstallationDirectory() {
         return getFile(installationDescription.getInstallationDirectory(), ELS_PACKAGE_PREFIX + installationDescription.getVersion());
     }

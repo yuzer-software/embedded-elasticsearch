@@ -28,6 +28,8 @@ public final class EmbeddedElastic {
     private final InstallationDescription installationDescription;
     private final long startTimeoutInMs;
 
+    private boolean withSecurity;
+
     private ElasticServer elasticServer;
     private ElasticRestClient elasticRestClient;
     private volatile boolean started = false;
@@ -39,7 +41,8 @@ public final class EmbeddedElastic {
 
     private EmbeddedElastic(String esJavaOpts, InstanceSettings instanceSettings,
                             IndicesDescription indicesDescription, TemplatesDescription templatesDescription,
-                            InstallationDescription installationDescription, long startTimeoutInMs, JavaHomeOption javaHome) {
+                            InstallationDescription installationDescription, long startTimeoutInMs, JavaHomeOption javaHome,
+                            boolean withSecurity) {
         this.esJavaOpts = esJavaOpts;
         this.instanceSettings = instanceSettings;
         this.indicesDescription = indicesDescription;
@@ -47,6 +50,7 @@ public final class EmbeddedElastic {
         this.installationDescription = installationDescription;
         this.startTimeoutInMs = startTimeoutInMs;
         this.javaHome = javaHome;
+        this.withSecurity = withSecurity;
     }
 
     /**
@@ -65,13 +69,18 @@ public final class EmbeddedElastic {
         return this;
     }
 
+    public String getPassword(String user) {
+        return this.elasticServer.getPassword(user);
+    }
+
     private void installElastic() throws IOException, InterruptedException {
         ElasticSearchInstaller elasticSearchInstaller = new ElasticSearchInstaller(instanceSettings, installationDescription);
         logger.info("Installing elasticsearch to " + elasticSearchInstaller.getInstallationDirectory());
         elasticSearchInstaller.install();
         File executableFile = elasticSearchInstaller.getExecutableFile();
+        File executableSetupPasswordFile = elasticSearchInstaller.getPasswordSetupExecutableFile();
         File installationDirectory = elasticSearchInstaller.getInstallationDirectory();
-        elasticServer = new ElasticServer(esJavaOpts, installationDirectory, executableFile, startTimeoutInMs,
+        elasticServer = new ElasticServer(esJavaOpts, installationDirectory, executableFile, executableSetupPasswordFile, startTimeoutInMs,
                 installationDescription.isCleanInstallationDirectoryOnStop(), javaHome);
     }
 
@@ -82,7 +91,14 @@ public final class EmbeddedElastic {
     }
 
     private void createRestClient() throws UnknownHostException {
-        elasticRestClient = new ElasticRestClient(elasticServer.getHttpPort(), new HttpClient(), indicesDescription, templatesDescription);
+        HttpClient client;
+        if (withSecurity) {
+            client = new HttpClient("elastic", elasticServer.getPassword("elastic"));
+        } else {
+            client = new HttpClient();
+        }
+
+        elasticRestClient = new ElasticRestClient(elasticServer.getHttpPort(), client, indicesDescription, templatesDescription);
     }
 
     /**
@@ -295,12 +311,16 @@ public final class EmbeddedElastic {
         private int downloaderReadTimeoutInMs = 300_000;
         private Proxy downloadProxy = null;
         private JavaHomeOption javaHome = JavaHomeOption.useSystem();
+        private boolean withSecurity = false;
 
         private Builder() {
         }
 
         public Builder withSetting(String name, Object value) {
             settings = settings.withSetting(name, value);
+            if (name.equals("xpack.security.enabled") && value.equals("true")) {
+                withSecurity = true;
+            }
             return this;
         }
 
@@ -442,7 +462,8 @@ public final class EmbeddedElastic {
                     new TemplatesDescription(templates),
                     new InstallationDescription(installationSource, downloadDirectory, installationDirectory, cleanInstallationDirectoryOnStop, plugins, downloaderConnectionTimeoutInMs, downloaderReadTimeoutInMs, downloadProxy),
                     startTimeoutInMs,
-                    javaHome);
+                    javaHome,
+                    withSecurity);
         }
 
     }
