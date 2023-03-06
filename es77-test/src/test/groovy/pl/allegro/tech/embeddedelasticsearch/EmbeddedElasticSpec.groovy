@@ -22,11 +22,11 @@ import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
 
 class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
 
-    static final ELASTIC_VERSION = "7.7.0"
+    static final ELASTIC_VERSION = "7.17.0"
     static final HTTP_PORT_VALUE = 9999
     static final DOC_TYPE = "_doc"
 
-    static EmbeddedElastic embeddedElastic = EmbeddedElastic.builder()
+    static EmbeddedElastic embeddedElasticServer = EmbeddedElastic.builder()
             .withElasticVersion(ELASTIC_VERSION)
             .withSetting(HTTP_PORT, HTTP_PORT_VALUE)
             .withSetting("xpack.ml.enabled", "false") // This cause issues on mac os so disable in tests
@@ -39,6 +39,10 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
             .build()
             .start()
 
+    @Override
+    EmbeddedElastic getEmbeddedElastic() {
+        return embeddedElasticServer
+    }
     static RestHighLevelClient client = createClient()
 
     def setup() {
@@ -53,7 +57,7 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
     static RestHighLevelClient createClient() {
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY,
-                new UsernamePasswordCredentials("elastic", embeddedElastic.getPassword("elastic")))
+                new UsernamePasswordCredentials("elastic", embeddedElasticServer.getPassword("elastic")))
 
         return new RestHighLevelClient(
                 RestClient.builder(new HttpHost("localhost", HTTP_PORT_VALUE)).setHttpClientConfigCallback(

@@ -18,7 +18,6 @@ import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.apache.commons.lang3.Validate.isTrue;
 
 class ElasticServer {
-
     private static final Logger logger = LoggerFactory.getLogger(ElasticServer.class);
 
     private final String esJavaOpts;
