@@ -27,9 +27,7 @@ public final class EmbeddedElastic {
     private final TemplatesDescription templatesDescription;
     private final InstallationDescription installationDescription;
     private final long startTimeoutInMs;
-
-    private boolean withSecurity;
-
+    private final boolean withSecurity;
     private ElasticServer elasticServer;
     private ElasticRestClient elasticRestClient;
     private volatile boolean started = false;
@@ -91,14 +89,14 @@ public final class EmbeddedElastic {
     }
 
     private void createRestClient() throws UnknownHostException {
-        HttpClient client;
+        HttpClient httpClient;
         if (withSecurity) {
-            client = new HttpClient("elastic", elasticServer.getPassword("elastic"));
+            httpClient = new HttpClient("elastic", elasticServer.getPassword("elastic"));
         } else {
-            client = new HttpClient();
+            httpClient = new HttpClient();
         }
 
-        elasticRestClient = new ElasticRestClient(elasticServer.getHttpPort(), client, indicesDescription, templatesDescription);
+        elasticRestClient = new ElasticRestClient(elasticServer.getHttpPort(), httpClient, indicesDescription, templatesDescription);
     }
 
     /**
@@ -298,9 +296,9 @@ public final class EmbeddedElastic {
     public static final class Builder {
 
         private InstallationSource installationSource = null;
-        private List<Plugin> plugins = new ArrayList<>();
-        private Map<String, Optional<IndexSettings>> indices = new HashMap<>();
-        private Map<String, String> templates = new HashMap<>();
+        private final List<Plugin> plugins = new ArrayList<>();
+        private final Map<String, Optional<IndexSettings>> indices = new HashMap<>();
+        private final Map<String, String> templates = new HashMap<>();
         private InstanceSettings settings = new InstanceSettings();
         private String esJavaOpts = "";
         private long startTimeoutInMs = 15_000;

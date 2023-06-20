@@ -23,8 +23,8 @@ class HttpClient {
     }
 
     public HttpClient(String username, String password) {
-        String unEncodedToken = username + ":" + password;
-        this.token = Base64.getEncoder().encodeToString(unEncodedToken.getBytes());
+        String decodedToken = username + ":" + password;
+        this.token = Base64.getEncoder().encodeToString(decodedToken.getBytes());
     }
 
     void execute(HttpRequestBase request) {

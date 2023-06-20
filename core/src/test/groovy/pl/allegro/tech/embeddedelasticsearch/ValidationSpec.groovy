@@ -1,6 +1,5 @@
 package pl.allegro.tech.embeddedelasticsearch
 
-import org.apache.commons.io.FileUtils
 import spock.lang.Specification
 
 import static java.util.concurrent.TimeUnit.MINUTES
@@ -58,6 +57,6 @@ class ValidationSpec extends Specification {
             thrown(IllegalArgumentException)
     }
 
-    static final TEST_START_TIMEOUT_IN_MINUTES = 1;
+    static final TEST_START_TIMEOUT_IN_MINUTES = 1
 
 }

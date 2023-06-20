@@ -85,7 +85,7 @@ class InstallationDescription {
     }
 
     static class Plugin {
-        private String expression;
+        private final String expression;
 
         Plugin(String expression) {
             this.expression = expression;

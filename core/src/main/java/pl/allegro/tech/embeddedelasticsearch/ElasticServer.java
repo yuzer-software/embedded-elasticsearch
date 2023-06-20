@@ -35,7 +35,7 @@ class ElasticServer {
     private volatile int pid = -1;
     private volatile int httpPort = -1;
     private volatile int transportTcpPort = -1;
-    private JavaHomeOption javaHome;
+    private final JavaHomeOption javaHome;
 
     ElasticServer(String esJavaOpts, File installationDirectory, File executableFile, File executableSetupPasswordFile, long startTimeoutInMs, boolean cleanInstallationDirectoryOnStop, JavaHomeOption javaHome) {
         this.esJavaOpts = esJavaOpts;
@@ -68,7 +68,7 @@ class ElasticServer {
         synchronized (this) {
             if (securityMap == null) {
                 try {
-                    securityMap = new HashMap();
+                    securityMap = new HashMap<>();
                     ProcessBuilder builder = new ProcessBuilder(
                             executableSetupPasswordFile.getAbsolutePath(),
                             "auto",

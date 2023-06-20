@@ -36,7 +36,7 @@ class ElasticRestClient {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private int elasticsearchHttpPort;
+    private final int elasticsearchHttpPort;
     private final HttpClient httpClient;
     private final IndicesDescription indicesDescription;
     private final TemplatesDescription templatesDescription;

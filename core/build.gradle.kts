@@ -43,13 +43,9 @@ dependencies {
     testImplementation("org.skyscreamer:jsonassert:1.3.0")
 }
 
-// jar.baseName = 'embedded-elasticsearch'
-
 publishing {
     publications {
         create<MavenPublication>("lib") {
-//            groupId = 'com.geargroup'
-//            artifactId = 'embedded-elasticsearch'
             from(components["java"])
         }
     }

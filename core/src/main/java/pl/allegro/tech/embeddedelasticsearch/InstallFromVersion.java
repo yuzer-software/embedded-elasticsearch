@@ -42,8 +42,8 @@ class InstallFromVersion implements InstallationSource {
         ELS_6x("6.", ELS_5x.downloadUrl),
         ELS_7x("7.", "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{VERSION}-windows-x86_64.zip");
 
-        String versionPrefix;
-        String downloadUrl;
+        final String versionPrefix;
+        final String downloadUrl;
 
         ElsDownloadUrl(String versionPrefix, String downloadUrl) {
             this.versionPrefix = versionPrefix;
