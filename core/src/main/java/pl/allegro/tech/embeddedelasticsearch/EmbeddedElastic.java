@@ -55,8 +55,8 @@ public final class EmbeddedElastic {
      * Downloads Elasticsearch with specified plugins, setups them and starts
      */
     public synchronized EmbeddedElastic start() throws IOException, InterruptedException {
-        logger.info("Calling start ");
         if (!started) {
+            logger.info("Starting embedded Elastic.");
             started = true;
             installElastic();
             startElastic();

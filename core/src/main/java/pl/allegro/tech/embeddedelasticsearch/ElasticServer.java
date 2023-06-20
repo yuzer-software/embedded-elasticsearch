@@ -79,7 +79,6 @@ class ElasticServer {
                     BufferedReader outputStream = new BufferedReader(new InputStreamReader(securityPasswords.getInputStream(), UTF_8));
                     String line;
                     while ((line = readLine(outputStream)) != null) {
-                        logger.info(line);
                         parseElasticPasswordLine(line);
                     }
                 } catch (Exception e) {
@@ -98,8 +97,8 @@ class ElasticServer {
         if (line.startsWith("PASSWORD")) {
             String subst = line.substring(9);
             int equalIndex = subst.indexOf("=");
-            String user = subst.substring(0, equalIndex - 1);
-            String password = subst.substring(equalIndex + 2);
+            String user = subst.substring(0, equalIndex).trim();
+            String password = subst.substring(equalIndex + 1).trim();
             securityMap.put(user, password);
         }
     }
