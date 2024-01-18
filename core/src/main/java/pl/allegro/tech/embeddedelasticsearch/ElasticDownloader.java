@@ -27,7 +27,7 @@ class ElasticDownloader {
         this.installationDescription = installationDescription;
     }
 
-    Path download() throws IOException, InterruptedException {
+    Path download() throws IOException {
         prepareDirectories();
         return downloadElastic();
     }

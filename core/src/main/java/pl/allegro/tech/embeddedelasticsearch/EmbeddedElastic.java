@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Proxy;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -52,7 +51,10 @@ public final class EmbeddedElastic {
     }
 
     /**
-     * Downloads Elasticsearch with specified plugins, setups them and starts
+     * Downloads Elasticsearch with specified plugins, setups them and starts.
+     *
+     * @throws IOException if the installation directory cannot be created or the file already exists but is not a directory.
+     * @throws InterruptedException if the current thread is interrupted by another thread while it is waiting, then the wait is ended and an InterruptedException is thrown.
      */
     public synchronized EmbeddedElastic start() throws IOException, InterruptedException {
         if (!started) {
@@ -82,13 +84,13 @@ public final class EmbeddedElastic {
                 installationDescription.isCleanInstallationDirectoryOnStop(), javaHome);
     }
 
-    private void startElastic() throws IOException, InterruptedException {
+    private void startElastic() throws InterruptedException {
         if (!elasticServer.isStarted()) {
             elasticServer.start();
         }
     }
 
-    private void createRestClient() throws UnknownHostException {
+    private void createRestClient() {
         HttpClient httpClient;
         if (withSecurity) {
             httpClient = new HttpClient("elastic", elasticServer.getPassword("elastic"));
@@ -157,7 +159,7 @@ public final class EmbeddedElastic {
     }
 
     /**
-     * Index single document document with routing
+     * Index single document with routing
      *
      * @param indexRequests document to be indexed along with metadata
      */
@@ -273,9 +275,10 @@ public final class EmbeddedElastic {
     /**
      * Fetch all documents from specified indices. Useful for logging and debugging
      *
+     * @throws HttpClient.HttpRequestException in case of a problem or the connection was aborted
      * @return list containing documents sources represented as JSON
      */
-    public List<String> fetchAllDocuments(String... indices) throws UnknownHostException {
+    public List<String> fetchAllDocuments(String... indices) {
         return elasticRestClient.fetchAllDocuments(indices);
     }
 
@@ -293,6 +296,9 @@ public final class EmbeddedElastic {
         return elasticServer.getHttpPort();
     }
 
+    /**
+     * Builder for EmbeddedElastic.
+     */
     public static final class Builder {
 
         private InstallationSource installationSource = null;
@@ -369,7 +375,6 @@ public final class EmbeddedElastic {
 
         /**
          * Plugin that should be installed with created instance. Treat invocation of this method as invocation of elasticsearch-plugin install command:
-         * <p>
          * <pre>./elasticsearch-plugin install EXPRESSION</pre>
          */
         public Builder withPlugin(String expression) {
@@ -378,20 +383,23 @@ public final class EmbeddedElastic {
         }
 
         /**
-         * Index that will be created in created Elasticsearch cluster
+         * Index that will be created when EmbeddedElastic is started.
          */
         public Builder withIndex(String indexName, IndexSettings indexSettings) {
             this.indices.put(indexName, Optional.of(indexSettings));
             return this;
         }
 
+        /**
+         * Index that will be created when EmbeddedElastic is started.
+         */
         public Builder withIndex(String indexName) {
             this.indices.put(indexName, Optional.empty());
             return this;
         }
 
         /**
-         * add a template that will be created after Elasticsearch cluster started
+         * Add a template that will be created after Elasticsearch cluster started.
          *
          * @param name
          * @param templateBody
@@ -408,7 +416,7 @@ public final class EmbeddedElastic {
          * @param name
          * @param templateBody
          * @return
-         * @throws IOException
+         * @throws IOException if an I/O error occurs when getting the contents of templateBody.
          */
         public Builder withTemplate(String name, InputStream templateBody) throws IOException {
             return withTemplate(name, IOUtils.toString(templateBody, UTF_8));
