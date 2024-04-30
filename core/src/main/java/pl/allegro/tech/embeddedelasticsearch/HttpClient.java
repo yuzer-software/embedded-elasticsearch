@@ -1,19 +1,16 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 
 import java.io.IOException;
 import java.util.Base64;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 class HttpClient {
-
-    private static final Consumer<CloseableHttpResponse> noop = x -> {
-    };
 
     private final CloseableHttpClient internalHttpClient = HttpClients.createDefault();
 
@@ -27,27 +24,27 @@ class HttpClient {
         this.token = Base64.getEncoder().encodeToString(decodedToken.getBytes());
     }
 
-    void execute(HttpRequestBase request) {
-        execute(request, noop);
+    void execute(HttpUriRequestBase request) {
+        execute(request, (HttpClientResponseHandler<Void>) response -> null);
     }
 
-    void execute(HttpRequestBase request, Consumer<CloseableHttpResponse> block) {
-        execute(request, (Function<CloseableHttpResponse, Void>) response -> {
+    void execute(HttpUriRequestBase request, Consumer<ClassicHttpResponse> block) {
+        execute(request, (HttpClientResponseHandler<Void>) response -> {
             block.accept(response);
             return null;
         });
     }
 
-    <T> T execute(HttpRequestBase request, Function<CloseableHttpResponse, T> block) {
+    <T> T execute(HttpUriRequestBase request, HttpClientResponseHandler<T> responseHandler) {
         if (this.token != null) {
             request.addHeader("Authorization", "Basic " + token);
         }
-        try (CloseableHttpResponse response = internalHttpClient.execute(request)) {
-            return block.apply(response);
+        try {
+            return internalHttpClient.execute(request, responseHandler);
         } catch (IOException e) {
             throw new HttpRequestException(e);
         } finally {
-            request.releaseConnection();
+            request.reset();
         }
     }
 

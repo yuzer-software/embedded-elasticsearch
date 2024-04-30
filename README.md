@@ -1,8 +1,5 @@
 # embedded-elasticsearch
 
-[![Build Status](https://travis-ci.org/allegro/embedded-elasticsearch.svg?branch=master)](https://travis-ci.org/allegro/embedded-elasticsearch)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/pl.allegro.tech/embedded-elasticsearch/badge.svg)](http://central.maven.org/maven2/pl/allegro/tech/embedded-elasticsearch)
-
 Small utility for creating integration tests that use Elasticsearch. Instead of using `Node` it downloads Elasticsearch in specified version and starts it in a separate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 1.x, 2.x, 5.x, 6.x and 7.x versions of Elasticsearch.
 
 ## Introduction
@@ -103,16 +100,16 @@ To start using embedded-elasticsearch in your project add it as a test dependenc
 Gradle:
 
 ```groovy
-testCompile 'pl.allegro.tech:embedded-elasticsearch:2.7.0'
+testCompile 'com.yuzer:embedded-elasticsearch:2.11.0'
 ```
 
 Maven:
 
 ```xml
 <dependency>
-    <groupId>pl.allegro.tech</groupId>
+    <groupId>com.yuzer</groupId>
     <artifactId>embedded-elasticsearch</artifactId>
-    <version>2.7.0</version>
+    <version>2.11.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -120,7 +117,7 @@ Maven:
 SBT:
 
 ```
-libraryDependencies ++= Seq("pl.allegro.tech" % "embedded-elasticsearch" % "2.7.0" % "test")
+libraryDependencies ++= Seq("com.yuzer" % "embedded-elasticsearch" % "2.11.0" % "test")
 ```
 
 ## Known problems

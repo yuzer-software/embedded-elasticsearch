@@ -22,7 +22,7 @@ import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
 
 class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
 
-    static final ELASTIC_VERSION = "7.17.0"
+    static final ELASTIC_VERSION = "7.7.0"
     static final HTTP_PORT_VALUE = 9999
     static final DOC_TYPE = "_doc"
 

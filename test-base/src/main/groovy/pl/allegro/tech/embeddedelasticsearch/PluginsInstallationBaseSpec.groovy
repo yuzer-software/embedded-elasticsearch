@@ -1,8 +1,8 @@
 package pl.allegro.tech.embeddedelasticsearch
 
 import groovy.json.JsonSlurper
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.client.HttpClients
+import org.apache.hc.client5.http.classic.methods.HttpGet
+import org.apache.hc.client5.http.impl.classic.HttpClients
 import spock.lang.Specification
 
 abstract class PluginsInstallationBaseSpec extends Specification {
