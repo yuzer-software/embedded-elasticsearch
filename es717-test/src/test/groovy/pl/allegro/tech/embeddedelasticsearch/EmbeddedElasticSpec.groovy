@@ -64,7 +64,7 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
             .build()
 
     // Create the Java API Client
-    static ElasticsearchClient elasticClient = createElasticsearchClient(restClient)
+    static ElasticsearchClient elasticsearchClient = createElasticsearchClient(restClient)
 
     // To avoid any operational overhead during the transition phase where an application would use
     // both the HLRC and the new Java API Client, both clients can share the same Low Level Rest Client,
