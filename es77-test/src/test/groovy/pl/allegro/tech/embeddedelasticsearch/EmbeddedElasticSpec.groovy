@@ -24,7 +24,6 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
 
     static final ELASTIC_VERSION = "7.7.0"
     static final HTTP_PORT_VALUE = 9999
-    static final DOC_TYPE = "_doc"
 
     static EmbeddedElastic embeddedElasticServer = EmbeddedElastic.builder()
             .withElasticVersion(ELASTIC_VERSION)
@@ -73,7 +72,7 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
 
     @Override
     void index(IndexRequest indexRequest) {
-        IndexRequest newIndexRequest = new IndexRequest.IndexRequestBuilder(indexRequest.getIndexName(), "_doc", indexRequest.getJson()).build()
+        IndexRequest newIndexRequest = new IndexRequest.IndexRequestBuilder(indexRequest.getIndexName(), indexRequest.getJson()).build()
         index(Arrays.asList(newIndexRequest))
     }
 
@@ -81,24 +80,24 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
     void index(List<IndexRequest> indexRequests) {
         ArrayList<IndexRequest> newIndexRequests = new ArrayList<>()
         for (IndexRequest newIndexRequest : indexRequests) {
-            newIndexRequests.add(new IndexRequest.IndexRequestBuilder(newIndexRequest.getIndexName(), DOC_TYPE, newIndexRequest.getJson()).withId(newIndexRequest.getId()).withRouting(newIndexRequest.getRouting()).build())
+            newIndexRequests.add(new IndexRequest.IndexRequestBuilder(newIndexRequest.getIndexName(), newIndexRequest.getJson()).withId(newIndexRequest.getId()).withRouting(newIndexRequest.getRouting()).build())
         }
         embeddedElastic.index(newIndexRequests)
     }
 
     @Override
     void index(SampleIndices.PaperBook book) {
-        index(new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, DOC_TYPE, toJson(book)).build())
+        index(new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, toJson(book)).build())
     }
 
     @Override
     void index(SampleIndices.Car car) {
-        index(new IndexRequest.IndexRequestBuilder(CARS_INDEX_NAME, DOC_TYPE, toJson(car)).build())
+        index(new IndexRequest.IndexRequestBuilder(CARS_INDEX_NAME, toJson(car)).build())
     }
 
     @Override
-    void index(String indexName, String indexType, Map idJsonMap) {
-        embeddedElastic.index(indexName, DOC_TYPE, idJsonMap)
+    void index(String indexName, Map idJsonMap) {
+        embeddedElastic.index(indexName, idJsonMap)
     }
 
     @Override
@@ -117,12 +116,7 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
     }
 
     @Override
-    List<String> fetchAllDocuments(String indexName, String typeName) {
-        fetchAllDocuments(indexName)
-    }
-
-    @Override
-    List<String> fetchAllDocuments(String indexName, String typeName, String routing) {
+    List<String> fetchAllDocuments(String indexName, String routing) {
         final searchRequest = new SearchRequest(indexName)
                 .routing(routing)
                 .source(new SearchSourceBuilder().query(QueryBuilders.matchAllQuery()))
@@ -133,7 +127,7 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
     }
 
     @Override
-    List<String> searchByTerm(String indexName, String typeName, String fieldName, String value) {
+    List<String> searchByTerm(String indexName, String fieldName, String value) {
         final searchRequest = new SearchRequest()
                 .source(new SearchSourceBuilder().query(QueryBuilders.termQuery(fieldName, value)))
 
@@ -143,8 +137,8 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
     }
 
     @Override
-    String getById(String indexName, String typeName, String id) {
-        final getRequest = new GetRequest(indexName, DOC_TYPE, id)
+    String getById(String indexName, String id) {
+        final getRequest = new GetRequest(indexName, id)
         client.get(getRequest, RequestOptions.DEFAULT).sourceAsString
     }
 }

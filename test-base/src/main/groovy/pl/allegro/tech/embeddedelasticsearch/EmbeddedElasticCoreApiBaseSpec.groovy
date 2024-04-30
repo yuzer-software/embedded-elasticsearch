@@ -5,16 +5,13 @@ import org.skyscreamer.jsonassert.JSONAssert
 import spock.lang.Specification
 
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.AMERICAN_PSYCHO
-import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.AUDIO_BOOK_INDEX_TYPE
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.BOOKS_INDEX_NAME
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.BOOK_ALIAS_1
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.BOOK_ALIAS_2
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CARS_INDEX_NAME
-import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CAR_INDEX_TYPE
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CUJO
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.FIAT_126p
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.MISERY
-import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.PAPER_BOOK_INDEX_TYPE
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.SHINING
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.toJson
 
@@ -25,7 +22,7 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
         index(FIAT_126p)
 
         then:
-        final result = searchByTerm(CARS_INDEX_NAME, CAR_INDEX_TYPE, "model", FIAT_126p.model)
+        final result = searchByTerm(CARS_INDEX_NAME, "model", FIAT_126p.model)
         result.size() == 1
         assertJsonsEquals(toJson(FIAT_126p), result[0])
     }
@@ -37,7 +34,7 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
         index(SHINING)
 
         then:
-        final result = fetchAllDocuments(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE)
+        final result = fetchAllDocuments(BOOKS_INDEX_NAME)
         result.size() == 3
     }
 
@@ -47,10 +44,10 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
         final document = toJson(FIAT_126p)
 
         when:
-        index(CARS_INDEX_NAME, CAR_INDEX_TYPE, ["$id": document])
+        index(CARS_INDEX_NAME, ["$id": document])
 
         then:
-        final result = getById(CARS_INDEX_NAME, CAR_INDEX_TYPE, id)
+        final result = getById(CARS_INDEX_NAME, id)
         result != null
         assertJsonsEquals(document, result)
     }
@@ -102,7 +99,7 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
 
     def "should index document in a bulk"() {
         given:
-        index(new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(SHINING))
+        index(new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, toJson(SHINING))
                 .withId("id1")
                 .build()
         )
@@ -118,9 +115,9 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
     def "should index documents in a bulk"() {
         given:
         index([
-                new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(SHINING))
+                new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, toJson(SHINING))
                         .withId("id1").build(),
-                new IndexRequest.IndexRequestBuilder(CARS_INDEX_NAME, CAR_INDEX_TYPE, toJson(FIAT_126p))
+                new IndexRequest.IndexRequestBuilder(CARS_INDEX_NAME, toJson(FIAT_126p))
                         .withId("id2").build()
         ])
 
@@ -134,17 +131,17 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
     def "should index a document using specified routing"() {
         given:
         index([
-                new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(SHINING))
+                new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, toJson(SHINING))
                         .withId("id1").withRouting("bookShard1").build(),
-                new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(CUJO))
+                new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, toJson(CUJO))
                         .withId("id2").withRouting("bookShard2").build(),
         ])
 
         when:
-        final result1 = fetchAllDocuments(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, "bookShard1")
+        final result1 = fetchAllDocuments(BOOKS_INDEX_NAME, "bookShard1")
 
         and:
-        final result2 = fetchAllDocuments(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, "bookShard2")
+        final result2 = fetchAllDocuments(BOOKS_INDEX_NAME, "bookShard2")
 
         and:
         final resultAll = fetchAllDocuments(BOOKS_INDEX_NAME)
@@ -162,19 +159,19 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
     }
 
     void index(SampleIndices.Car car) {
-        index(new IndexRequest.IndexRequestBuilder(CARS_INDEX_NAME, CAR_INDEX_TYPE, toJson(car)).build())
+        index(new IndexRequest.IndexRequestBuilder(CARS_INDEX_NAME, toJson(car)).build())
     }
 
-    void index(String indexName, String indexType, Map idJsonMap) {
-        embeddedElastic.index(indexName, indexType, idJsonMap)
+    void index(String indexName, Map idJsonMap) {
+        embeddedElastic.index(indexName, idJsonMap)
     }
 
     void index(SampleIndices.PaperBook book) {
-        index(new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(book)).build())
+        index(new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, toJson(book)).build())
     }
 
     void index(SampleIndices.AudioBook book) {
-        index(new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, AUDIO_BOOK_INDEX_TYPE, toJson(book)).build())
+        index(new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, toJson(book)).build())
     }
 
     void index(IndexRequest indexRequest) {
@@ -191,11 +188,9 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
 
     abstract List<String> fetchAllDocuments(String indexName)
 
-    abstract List<String> fetchAllDocuments(String indexName, String typeName)
+    abstract List<String> fetchAllDocuments(String indexName, String routing)
 
-    abstract List<String> fetchAllDocuments(String indexName, String typeName, String routing)
+    abstract List<String> searchByTerm(String indexName, String fieldName, String value)
 
-    abstract List<String> searchByTerm(String indexName, String typeName, String fieldName, String value)
-
-    abstract String getById(String indexName, String indexType, String id)
+    abstract String getById(String indexName, String id)
 }

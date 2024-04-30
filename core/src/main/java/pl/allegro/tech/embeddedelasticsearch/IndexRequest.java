@@ -3,14 +3,12 @@ package pl.allegro.tech.embeddedelasticsearch;
 public class IndexRequest {
 
     private final String indexName;
-    private final String indexType;
     private final String id;
     private final String routing;
     private final String json;
 
-    private IndexRequest(String indexName, String indexType, String json, String id, String routing) {
+    private IndexRequest(String indexName, String json, String id, String routing) {
         this.indexName = indexName;
-        this.indexType = indexType;
         this.id = id;
         this.routing = routing;
         this.json = json;
@@ -18,10 +16,6 @@ public class IndexRequest {
 
     public String getIndexName() {
         return indexName;
-    }
-
-    public String getIndexType() {
-        return indexType;
     }
 
     public String getId() {
@@ -39,24 +33,17 @@ public class IndexRequest {
     public static class IndexRequestBuilder {
 
         private String indexName;
-        private String indexType;
         private String id;
         private String routing;
         private String json;
 
-        public IndexRequestBuilder(final String indexName, final String indexType, final String json) {
+        public IndexRequestBuilder(final String indexName, final String json) {
             this.indexName = indexName;
-            this.indexType = indexType;
             this.json = json;
         }
 
         public IndexRequestBuilder withIndexName(String indexName) {
             this.indexName = indexName;
-            return this;
-        }
-
-        public IndexRequestBuilder withIndexType(String indexType) {
-            this.indexType = indexType;
             return this;
         }
 
@@ -76,7 +63,7 @@ public class IndexRequest {
         }
 
         public IndexRequest build() {
-            return new IndexRequest(indexName, indexType, json, id, routing);
+            return new IndexRequest(indexName, json, id, routing);
         }
     }
 }

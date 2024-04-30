@@ -1,6 +1,6 @@
 # embedded-elasticsearch
 
-Small utility for creating integration tests that use Elasticsearch. Instead of using `Node` it downloads Elasticsearch in specified version and starts it in a separate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 1.x, 2.x, 5.x, 6.x and 7.x versions of Elasticsearch.
+Small utility for creating integration tests that use Elasticsearch. Instead of using `Node` it downloads Elasticsearch in specified version and starts it in a separate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 7.x versions of Elasticsearch.
 
 ## Introduction
 
@@ -8,16 +8,13 @@ All you need to do to use this tool is create `EmbeddedElastic` instance. To do 
 
 ```java
 final embeddedElastic = EmbeddedElastic.builder()
-        .withElasticVersion("5.0.0")
+        .withElasticVersion("7.7.0")
         .withSetting(PopularProperties.TRANSPORT_TCP_PORT, 9350)
         .withSetting(PopularProperties.CLUSTER_NAME, "my_cluster")
         .withPlugin("analysis-stempel")
-        .withIndex("cars", IndexSettings.builder()
-            .withType("car", getSystemResourceAsStream("car-mapping.json"))
-            .build())
+        .withIndex("cars", IndexSettings.builder() .build())
         .withIndex("books", IndexSettings.builder()
-            .withType(PAPER_BOOK_INDEX_TYPE, getSystemResourceAsStream("paper-book-mapping.json"))
-            .withType("audio_book", getSystemResourceAsStream("audio-book-mapping.json"))
+            .withMapping(getSystemResourceAsStream("paper-book-mapping.json"))
             .withSettings(getSystemResourceAsStream("elastic-settings.json"))
             .build())
         .build()
@@ -59,8 +56,7 @@ Available `IndexSettings.Builder` options
 
 | Method | Description |
 | ------------- | ------------- |
-| `withType(String type, String mapping)` | specify type and it's mappings |
-| `withMapping(String mapping)` | starting from Elasticseatch 7, there is no more types, so when using an ES version 7.0 and above this method should be used insted of withType method |
+| `withMapping(String mapping)` | specify mapping, starting from Elasticseatch 7 |
 | `withSettings(String settings)` | specify index settings |
 
 

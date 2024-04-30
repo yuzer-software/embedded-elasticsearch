@@ -115,13 +115,12 @@ public final class EmbeddedElastic {
      * Index documents
      *
      * @param indexName target index
-     * @param indexType target index type
      * @param idJsonMap map where keys are documents ids and values are documents represented as JSON
      */
-    public void index(String indexName, String indexType, Map<CharSequence, CharSequence> idJsonMap) {
+    public void index(String indexName, Map<CharSequence, CharSequence> idJsonMap) {
         index(
                 idJsonMap.entrySet().stream()
-                        .map(entry -> new IndexRequest.IndexRequestBuilder(indexName, indexType, entry.getValue().toString())
+                        .map(entry -> new IndexRequest.IndexRequestBuilder(indexName, entry.getValue().toString())
                                 .withId(entry.getKey().toString()).build()
                         )
                         .collect(toList())
@@ -132,13 +131,12 @@ public final class EmbeddedElastic {
      * Index documents
      *
      * @param indexName target index
-     * @param indexType target index name
      * @param json      document represented as JSON
      */
-    public void index(String indexName, String indexType, String... json) {
+    public void index(String indexName, String... json) {
         index(
                 Arrays.stream(json)
-                        .map(item -> new IndexRequest.IndexRequestBuilder(indexName, indexType, item).build())
+                        .map(item -> new IndexRequest.IndexRequestBuilder(indexName, item).build())
                         .collect(toList())
         );
     }
@@ -147,13 +145,12 @@ public final class EmbeddedElastic {
      * Index documents
      *
      * @param indexName target index
-     * @param indexType target index name
      * @param jsons     documents represented as JSON
      */
-    public void index(String indexName, String indexType, List<CharSequence> jsons) {
+    public void index(String indexName, List<CharSequence> jsons) {
         index(
                 jsons.stream()
-                        .map(json -> new IndexRequest.IndexRequestBuilder(indexName, indexType, json.toString()).build())
+                        .map(json -> new IndexRequest.IndexRequestBuilder(indexName, json.toString()).build())
                         .collect(toList())
         );
     }

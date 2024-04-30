@@ -135,7 +135,7 @@ class ElasticRestClient {
         String bulkRequestBody = indexRequests.stream()
                 .flatMap(request ->
                     Stream.of(
-                            indexMetadataJson(request.getIndexName(), request.getIndexType(), request.getId(), request.getRouting()),
+                            indexMetadataJson(request.getIndexName(), request.getId(), request.getRouting()),
                             request.getJson()
                     )
                 )
@@ -145,18 +145,14 @@ class ElasticRestClient {
         performBulkRequest(url("/_bulk"), bulkRequestBody);
     }
 
-    private String indexMetadataJson(String indexName, String indexType, String id, String routing) {
+    private String indexMetadataJson(String indexName, String id, String routing) {
         StringJoiner joiner = new StringJoiner(",");
 
-        if(indexName != null) {
+        if (indexName != null) {
             joiner.add("\"_index\": \"" + indexName + "\"");
         }
 
-        if(indexType != null) {
-            joiner.add("\"_type\": \"" + indexType + "\"");
-        }
-
-        if(id != null) {
+        if (id != null) {
             joiner.add("\"_id\": \"" + id + "\"");
         }
 
@@ -167,7 +163,7 @@ class ElasticRestClient {
                 joiner.add("\"_routing\": \"" + routing + "\"");
             }
         }
-        return "{ \"index\": {" + joiner.toString() + "} }";
+        return "{ \"index\": {" + joiner + "} }";
     }
 
     void refresh() {

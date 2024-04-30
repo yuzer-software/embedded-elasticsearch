@@ -7,8 +7,6 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -18,35 +16,22 @@ public class IndexSettings {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final Optional<JsonNode> mappings;
-    private final List<TypeWithMapping> types;
     private final Optional<JsonNode> settings;
     private final Optional<JsonNode> aliases;
-    private boolean includeTypeName=false;
     public static Builder builder() {
         return new Builder();
     }
 
-    private IndexSettings(List<TypeWithMapping> types, Optional<String> settings, Optional<String> aliases) {
-        this.mappings = rawToJson(Optional.of("{}"));
-        this.types = types;
-        this.settings = rawToJson(settings);
-        this.aliases = Optional.empty();
-    }
-
     public IndexSettings(Optional<String>  mapping, Optional<String> settings) {
-        includeTypeName = true;
-        this.mappings = rawToJson(mapping);
-        this.settings = rawToJson(settings);
+        this.mappings = mapping.map(this::rawToJson);
+        this.settings = settings.map(this::rawToJson);
         this.aliases = Optional.empty();
-        this.types = new ArrayList<>();
     }
 
     private IndexSettings(Optional<String> mapping, Optional<String> settings, Optional<String> aliases) {
-        this.mappings = rawToJson(mapping);
-        includeTypeName = true;
-        this.settings = rawToJson(settings);
-        this.aliases = rawToJson(aliases);
-        this.types = new ArrayList<>();
+        this.mappings = mapping.map(this::rawToJson);
+        this.settings = settings.map(this::rawToJson);
+        this.aliases = aliases.map(this::rawToJson);
     }
 
     public static class Builder {
@@ -54,7 +39,6 @@ public class IndexSettings {
         private Optional<String> mapping  = Optional.empty();
         private Optional<String> settings = Optional.empty();
         private Optional<String> aliases = Optional.empty();
-        private final List<TypeWithMapping> types = new ArrayList<>();
 
         /**
          * Type with mappings to create with index
@@ -74,28 +58,6 @@ public class IndexSettings {
                 mappingString = (String) mapping;
             }
             this.mapping = Optional.of(mappingString);
-            return this;
-        }
-
-        /**
-         * Specify type inside created index
-         *
-         * @param type    name of type
-         * @param mapping mapping for created type
-         */
-        public Builder withType(String type, InputStream mapping) throws IOException {
-            return withType(type, IOUtils.toString(mapping, UTF_8));
-        }
-
-
-        /**
-         * Type with mappings to create with index
-         *
-         * @param type    name of type
-         * @param mapping mapping for created type
-         */
-        public Builder withType(String type, String mapping) {
-            types.add(new TypeWithMapping(type, mapping));
             return this;
         }
 
@@ -150,30 +112,16 @@ public class IndexSettings {
         objectNode.set("settings", settings.orElse(OBJECT_MAPPER.createObjectNode()));
         objectNode.set("aliases", aliases.orElse(OBJECT_MAPPER.createObjectNode()));
 
-        if (includeTypeName){
-            objectNode.set("mappings",mappings.orElse(OBJECT_MAPPER.createObjectNode()));
-        }
-        else {
-            ObjectNode mappingsObject = prepareMappingsObject();
-            objectNode.set("mappings", mappingsObject);
-        }
+        objectNode.set("mappings",mappings.orElse(OBJECT_MAPPER.createObjectNode()));
 
         return objectNode;
     }
 
-    private ObjectNode prepareMappingsObject() {
-        ObjectNode mappingsObject = OBJECT_MAPPER.createObjectNode();
-        types.forEach(type -> mappingsObject.set(type.getType(), type.getMapping()));
-        return mappingsObject;
-    }
-
-    private Optional<JsonNode> rawToJson(Optional<String> rawJson) {
-        return rawJson.map(json -> {
-            try {
-                return OBJECT_MAPPER.readTree(json);
-            } catch (IOException e) {
-                throw new RuntimeException("Problem with provided settings for index", e);
-            }
-        });
+    private JsonNode rawToJson(String rawJson) {
+        try {
+            return OBJECT_MAPPER.readTree(rawJson);
+        } catch (IOException e) {
+            throw new RuntimeException("Problem with provided settings for index", e);
+        }
     }
 }
