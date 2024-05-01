@@ -1,6 +1,5 @@
 package pl.allegro.tech.embeddedelasticsearch
 
-import groovy.json.JsonOutput
 import org.skyscreamer.jsonassert.JSONAssert
 import spock.lang.Specification
 

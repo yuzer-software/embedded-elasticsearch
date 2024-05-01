@@ -1,17 +1,14 @@
 package pl.allegro.tech.embeddedelasticsearch
 
-
 import org.apache.http.HttpHost
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.CredentialsProvider
 import org.apache.http.impl.client.BasicCredentialsProvider
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder
 import org.elasticsearch.action.get.GetRequest
 import org.elasticsearch.action.search.SearchRequest
 import org.elasticsearch.client.RequestOptions
 import org.elasticsearch.client.RestClient
-import org.elasticsearch.client.RestClientBuilder
 import org.elasticsearch.client.RestHighLevelClient
 import org.elasticsearch.index.query.QueryBuilders
 import org.elasticsearch.search.builder.SearchSourceBuilder
@@ -54,18 +51,13 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
     }
 
     static RestHighLevelClient createClient() {
-        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider()
         credentialsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials("elastic", embeddedElasticServer.getPassword("elastic")))
 
         return new RestHighLevelClient(
                 RestClient.builder(new HttpHost("localhost", HTTP_PORT_VALUE)).setHttpClientConfigCallback(
-                        new RestClientBuilder.HttpClientConfigCallback() {
-                            @Override
-                            HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpClientBuilder) {
-                                return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
-                            }
-                        }
+                        httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
                 )
         )
     }
@@ -86,12 +78,12 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
     }
 
     @Override
-    void index(SampleIndices.PaperBook book) {
+    void index(PaperBook book) {
         index(new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, toJson(book)).build())
     }
 
     @Override
-    void index(SampleIndices.Car car) {
+    void index(Car car) {
         index(new IndexRequest.IndexRequestBuilder(CARS_INDEX_NAME, toJson(car)).build())
     }
 
@@ -108,7 +100,7 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
     @Override
     List<String> fetchAllDocuments(String indexName) {
         final searchRequest = new SearchRequest(indexName)
-                .source(new SearchSourceBuilder().query(QueryBuilders.matchAllQuery()));
+                .source(new SearchSourceBuilder().query(QueryBuilders.matchAllQuery()))
 
         client.search(searchRequest, RequestOptions.DEFAULT)
                 .hits.hits.toList()

@@ -12,7 +12,7 @@ public abstract class JavaHomeOption {
     public abstract String getValue();
 
     public void ifNeedBeSet(Consumer<String> consumer) {
-        if(shouldBeSet()) {
+        if (shouldBeSet()) {
             consumer.accept(getValue());
         }
     }

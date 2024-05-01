@@ -15,9 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.StringJoiner;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -105,7 +103,7 @@ class ElasticRestClient {
     void deleteTemplate(String templateName) {
         if (indexExists(templateName)) {
             HttpDelete request = new HttpDelete(url("/_template/" + templateName));
-            httpClient.execute(request, (Consumer<ClassicHttpResponse>) response -> assertOk(response, "Delete request resulted in error"));
+            httpClient.execute(request, (ClassicHttpResponse response) -> assertOk(response, "Delete request resulted in error"));
             waitForClusterYellow();
         } else {
             logger.warn("Template: {} does not exists so cannot be removed", templateName);
@@ -124,7 +122,7 @@ class ElasticRestClient {
     void deleteIndex(String indexName) {
         if (indexExists(indexName)) {
             HttpDelete request = new HttpDelete(url("/" + indexName));
-            httpClient.execute(request, (Consumer<ClassicHttpResponse>) response -> assertOk(response, "Delete request resulted in error"));
+            httpClient.execute(request, (ClassicHttpResponse response) -> assertOk(response, "Delete request resulted in error"));
             waitForClusterYellow();
         } else {
             logger.warn("Index: {} does not exists so cannot be removed", indexName);
@@ -185,7 +183,7 @@ class ElasticRestClient {
                 return false;
             }
             String esV = jsonNode.get("version").get("number").asText();
-            return Integer.parseInt(esV.substring(0,1)) >= 7; //if version is 7 and above
+            return Integer.parseInt(esV.substring(0, 1)) >= 7; //if version is 7 and above
         });
     }
 
@@ -193,7 +191,7 @@ class ElasticRestClient {
         HttpPost request = new HttpPost(requestUrl);
         request.setHeader(new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json"));
         request.setEntity(new StringEntity(bulkRequestBody, UTF_8));
-        httpClient.execute(request, (Consumer<ClassicHttpResponse>) response -> assertOk(response, "Request finished with error"));
+        httpClient.execute(request, (ClassicHttpResponse response) -> assertOk(response, "Request finished with error"));
         refresh();
     }
 
@@ -222,33 +220,32 @@ class ElasticRestClient {
 
     List<String> fetchAllDocuments(String routing, String... indices) {
         if (indices.length == 0) {
-            return searchForDocuments(Optional.empty()).collect(toList());
+            return searchForDocuments().collect(toList());
         } else {
             return Stream.of(indices)
-                    .flatMap((index) -> searchForDocuments(Optional.of(index), Optional.ofNullable(routing)))
+                    .flatMap((index) -> searchForDocuments(index, routing))
                     .collect(toList());
         }
     }
 
-    private Stream<String> searchForDocuments(Optional<String> indexMaybe) {
-        return searchForDocuments(indexMaybe, Optional.empty());
+    private Stream<String> searchForDocuments() {
+        return searchForDocuments(null, null);
     }
 
-    private Stream<String> searchForDocuments(Optional<String> indexMaybe, Optional<String> routing) {
-        String searchCommand = prepareQuery(indexMaybe, routing);
+    private Stream<String> searchForDocuments(String index, String routing) {
+        String searchCommand = prepareQuery(index, routing);
         String body = fetchDocuments(searchCommand);
         return parseDocuments(body);
     }
 
-    private String prepareQuery(Optional<String> indexMaybe, Optional<String> routing) {
-
-        String routingQueryParam = routing
-                .map(r -> "?routing=" + r)
-                .orElse("");
-
-        return indexMaybe
-                .map(index -> "/" + index + "/_search" + routingQueryParam)
-                .orElse("/_search");
+    private String prepareQuery(String index, String routing) {
+        StringBuilder sb = new StringBuilder();
+        if (index != null)
+            sb.append('/').append(index);
+        sb.append("/_search");
+        if (routing != null)
+            sb.append("?routing=").append(routing);
+        return sb.toString();
     }
 
     private String fetchDocuments(String searchCommand) {

@@ -138,7 +138,7 @@ class ElasticSearchInstaller {
         return new String[]{pluginManager.getAbsolutePath(), "install", "--batch", plugin.getExpression()};
     }
 
-    private File pluginManagerExecutable() throws IOException {
+    private File pluginManagerExecutable() {
         File elasticsearchPlugin = fileRelativeToInstallationDir("bin", systemDependentExtension("elasticsearch-plugin"));
         File pluginManager;
         if (elasticsearchPlugin.exists()) {

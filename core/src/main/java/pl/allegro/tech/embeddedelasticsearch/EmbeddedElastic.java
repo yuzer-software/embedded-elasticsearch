@@ -397,10 +397,6 @@ public final class EmbeddedElastic {
 
         /**
          * Add a template that will be created after Elasticsearch cluster started.
-         *
-         * @param name
-         * @param templateBody
-         * @return
          */
         public Builder withTemplate(String name, String templateBody) {
             this.templates.put(name, templateBody);
@@ -408,11 +404,8 @@ public final class EmbeddedElastic {
         }
 
         /**
-         * add a template that will be created after Elasticsearch cluster started
+         * Add a template that will be created after Elasticsearch cluster started
          *
-         * @param name
-         * @param templateBody
-         * @return
          * @throws IOException if an I/O error occurs when getting the contents of templateBody.
          */
         public Builder withTemplate(String name, InputStream templateBody) throws IOException {
