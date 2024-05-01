@@ -74,6 +74,7 @@ class ElasticServer {
                             "auto",
                             "-b"
                     );
+                    javaHome.ifNeedBeSet(javaHomeValue -> builder.environment().put("ES_JAVA_HOME", javaHomeValue));
                     builder.redirectErrorStream(true);
                     Process securityPasswords = builder.start();
                     BufferedReader outputStream = new BufferedReader(new InputStreamReader(securityPasswords.getInputStream(), UTF_8));
@@ -121,7 +122,7 @@ class ElasticServer {
                 synchronized (this) {
                     ProcessBuilder builder = new ProcessBuilder();
                     builder.environment().put("ES_JAVA_OPTS", esJavaOpts);
-                    javaHome.ifNeedBeSet(javaHomeValue -> builder.environment().put("JAVA_HOME", javaHomeValue));
+                    javaHome.ifNeedBeSet(javaHomeValue -> builder.environment().put("ES_JAVA_HOME", javaHomeValue));
                     builder.redirectErrorStream(true);
                     builder.command(elasticExecutable());
                     elastic = builder.start();

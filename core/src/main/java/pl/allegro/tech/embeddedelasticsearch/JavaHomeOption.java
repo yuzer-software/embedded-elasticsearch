@@ -17,21 +17,27 @@ public abstract class JavaHomeOption {
         }
     }
 
+    /** Lets elasticsearch startup script determine the JRE. */
     public static JavaHomeOption useSystem() {
         return new JavaHomeOption.UseSystem();
     }
 
+    /** Use the JRE referenced by JAVA_HOME. */
+    public static JavaHomeOption useJavaHome() {
+        return new JavaHomeOption.UseJavaHome();
+    }
+
+    /** Use the JRE that is running the current process. */
     public static JavaHomeOption inheritTestSuite() {
         return new JavaHomeOption.Inherit();
     }
 
+    /** Use the JRE referenced by the given path */
     public static JavaHomeOption path(String path) {
         return new JavaHomeOption.Path(path);
     }
 
-    /**
-     * do not set an option, use the system wide set default
-     */
+    /** Lets elasticsearch startup script determine the JRE. */
     public static class UseSystem extends JavaHomeOption {
 
         public boolean shouldBeSet() {
@@ -43,9 +49,19 @@ public abstract class JavaHomeOption {
         }
     }
 
-    /**
-     * inherit java home from the process running the tests
-     */
+    /** Use the JRE referenced by JAVA_HOME. */
+    public static class UseJavaHome extends JavaHomeOption {
+
+        public boolean shouldBeSet() {
+            return true;
+        }
+
+        public String getValue() {
+            return System.getenv("JAVA_HOME");
+        }
+    }
+
+    /** Use the JRE that is running the current process. */
     public static class Inherit extends JavaHomeOption {
 
         @Override
@@ -60,8 +76,7 @@ public abstract class JavaHomeOption {
     }
 
     /**
-     * explicitly set java home using a path, e.g.
-     *
+     * Use the JRE referenced by the given path, e.g.
      * new JavaHomeOption.Path("/usr/lib/jvm/java-8-openjdk-amd64/")
      */
     public static class Path extends JavaHomeOption {

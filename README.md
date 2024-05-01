@@ -71,9 +71,10 @@ Availabe `JavaHomeOption` options
 
 | Method | Description |
 | ------------- | ------------- |
-| `useSystem()` | default behavior, lets elasticsearch startup script determine the JRE to run in |
-| `inheritTestSuite()` | use the same JRE as the process starting it |
-| `path(String path)` | manually set the path of the JRE to execute the embedded elastic |
+| `useSystem()` | default behavior, lets elasticsearch startup script determine the JRE |
+| `useJavaHome()` | use the JRE referenced by JAVA_HOME |
+| `inheritTestSuite()` | use the JRE that is running the current process |
+| `path(String path)` | use the JRE referenced by the given path |
 
 
 ## Available operations
