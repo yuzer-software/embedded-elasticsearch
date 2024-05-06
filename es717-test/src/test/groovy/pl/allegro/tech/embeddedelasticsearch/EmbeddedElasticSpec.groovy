@@ -1,5 +1,9 @@
 package pl.allegro.tech.embeddedelasticsearch
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient
+import co.elastic.clients.json.jackson.JacksonJsonpMapper
+import co.elastic.clients.transport.ElasticsearchTransport
+import co.elastic.clients.transport.rest_client.RestClientTransport
 import org.apache.http.HttpHost
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
@@ -9,8 +13,8 @@ import org.elasticsearch.action.get.GetRequest
 import org.elasticsearch.action.search.SearchRequest
 import org.elasticsearch.client.RequestOptions
 import org.elasticsearch.client.RestClient
-import org.elasticsearch.client.RestClientBuilder
 import org.elasticsearch.client.RestHighLevelClient
+import org.elasticsearch.client.RestHighLevelClientBuilder
 import org.elasticsearch.index.query.QueryBuilders
 import org.elasticsearch.search.builder.SearchSourceBuilder
 
@@ -20,7 +24,7 @@ import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
 
 class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
 
-    static final ELASTIC_VERSION = "7.7.0"
+    static final ELASTIC_VERSION = "7.17.0"
     static final HTTP_PORT_VALUE = 9999
 
     static EmbeddedElastic embeddedElasticServer = EmbeddedElastic.builder()
@@ -42,27 +46,41 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
     }
 
     // Create the low-level client
-    static RestClientBuilder restClientBuilder = createRestClientBuilder()
+    static RestClient restClient = createRestClient()
 
-    private static RestClientBuilder createRestClientBuilder() {
+    private static RestClient createRestClient() {
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider()
         credentialsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials("elastic", embeddedElasticServer.getPassword("elastic")))
 
         RestClient.builder(new HttpHost("localhost", HTTP_PORT_VALUE)).setHttpClientConfigCallback(
                 httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
-        )
+        ).build()
     }
 
-    // Create the high-level client
-    static RestHighLevelClient client = new RestHighLevelClient(restClientBuilder)
+    // Create the (deprecated) high-level client
+    static RestHighLevelClient hlrc = new RestHighLevelClientBuilder(restClient)
+            .setApiCompatibilityMode(true)
+            .build()
+
+    // Create the Java API Client
+    static ElasticsearchClient elasticClient = createElasticsearchClient(restClient)
+
+    // To avoid any operational overhead during the transition phase where an application would use
+    // both the HLRC and the new Java API Client, both clients can share the same Low Level Rest Client,
+    // which is the network layer that manages all connections, round-robin strategies, node sniffing, and so on.
+    private static ElasticsearchClient createElasticsearchClient(RestClient restClient) {
+        // Create the Java API Client with the same low level client
+        ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper())
+        return new ElasticsearchClient(transport)
+    }
 
     def setup() {
         embeddedElastic.recreateIndices()
     }
 
     def cleanupSpec() {
-        client.close()
+        restClient.close()
         embeddedElastic.stop()
     }
 
@@ -106,7 +124,7 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
         final searchRequest = new SearchRequest(indexName)
                 .source(new SearchSourceBuilder().query(QueryBuilders.matchAllQuery()))
 
-        client.search(searchRequest, RequestOptions.DEFAULT)
+        hlrc.search(searchRequest, RequestOptions.DEFAULT)
                 .hits.hits.toList()
                 .collect { it.sourceAsString }
     }
@@ -117,7 +135,7 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
                 .routing(routing)
                 .source(new SearchSourceBuilder().query(QueryBuilders.matchAllQuery()))
 
-        client.search(searchRequest, RequestOptions.DEFAULT)
+        hlrc.search(searchRequest, RequestOptions.DEFAULT)
                 .hits.hits.toList()
                 .collect { it.sourceAsString }
     }
@@ -127,7 +145,7 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
         final searchRequest = new SearchRequest()
                 .source(new SearchSourceBuilder().query(QueryBuilders.termQuery(fieldName, value)))
 
-        client.search(searchRequest, RequestOptions.DEFAULT)
+        hlrc.search(searchRequest, RequestOptions.DEFAULT)
                 .hits.hits.toList()
                 .collect { it.sourceAsString }
     }
@@ -135,6 +153,6 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
     @Override
     String getById(String indexName, String id) {
         final getRequest = new GetRequest(indexName, id)
-        client.get(getRequest, RequestOptions.DEFAULT).sourceAsString
+        hlrc.get(getRequest, RequestOptions.DEFAULT).sourceAsString
     }
 }
